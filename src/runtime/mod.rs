@@ -46,8 +46,17 @@ impl Runtime {
             reactor::run_reactor();
         });
 
+        // Create main task with completion flag
+        let main_task_complete = Arc::new(std::sync::atomic::AtomicBool::new(false));
+        let complete_flag = main_task_complete.clone();
+        
+        let wrapped_future = async move {
+            future.await;
+            complete_flag.store(true, std::sync::atomic::Ordering::SeqCst);
+        };
+        
         let task = Arc::new(Task {
-            future: Arc::new(Mutex::new(Box::pin(future)))
+            future: Arc::new(Mutex::new(Box::pin(wrapped_future)))
         });
         
         metrics_emit::task_spawned();
@@ -55,6 +64,7 @@ impl Runtime {
         
         self.state.task_queue.lock().unwrap().push(task);
 
-        executor::run_executor();
+        // Run executor until main task completes
+        executor::run_executor_until(main_task_complete);
     }
 }

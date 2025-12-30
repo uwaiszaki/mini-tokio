@@ -4,6 +4,7 @@ pub mod timer;
 
 // Re-export commonly used items for convenience
 pub use runtime::Runtime;
+pub use runtime::executor::spawn;
 pub use net::TcpListener;
 
 /// Initialize tracing with default settings (stdout, INFO level)

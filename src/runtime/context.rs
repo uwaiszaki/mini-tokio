@@ -2,11 +2,9 @@ use std::cell::RefCell;
 use std::sync::Arc;
 use super::State;
 
-
 thread_local! {
     static CONTEXT: RefCell<Option<Arc<State>>> = RefCell::new(None)
 }
-
 
 pub(crate) struct EntryGuard {
     old_context: Option<Arc<State>>
