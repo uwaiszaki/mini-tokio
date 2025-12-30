@@ -23,7 +23,7 @@ pub struct State {
     pub task_queue: Mutex<Vec<Arc<Task>>>,
     pub slabs: RwLock<Slab<Arc<IoState>>>,
     pub poll: Mutex<Poll>,
-    pub poll_registry: Registry
+    pub poll_registry: Registry,
 }
 
 impl State {
@@ -34,7 +34,7 @@ impl State {
             task_queue: Mutex::new(vec!()),
             slabs: RwLock::new(Slab::new()),
             poll: Mutex::new(poll),
-            poll_registry: registry
+            poll_registry: registry,
         })
     }
 }

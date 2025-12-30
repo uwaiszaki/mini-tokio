@@ -7,6 +7,8 @@ use std::task::{Context, Poll};
 use std::io::ErrorKind;
 
 use crate::runtime::IoState;
+use crate::runtime::trace::*;
+use crate::runtime::metrics::emit as metrics_emit;
 
 pub struct TcpReadStreamFuture<'a, 'b> {
     pub token: Token,
@@ -23,13 +25,23 @@ impl<'a, 'b> Future for TcpReadStreamFuture<'a, 'b> {
 
         let stream = &mut future.stream;
         match stream.read(future.buf) {
-            Ok(n) => Poll::Ready(Ok(n)),
+            Ok(n) => {
+                if n > 0 {
+                    trace!("Read {} bytes from stream (token {})", n, future.token.0);
+                    metrics_emit::bytes_read(n as u64);
+                }
+                Poll::Ready(Ok(n))
+            },
             Err(err) => match err.kind() {
                 ErrorKind::WouldBlock => {
+                    trace!("Read would block, registering waker");
                     future.io_state.read_waker.register(cx.waker());
                     Poll::Pending
                 },
-                _ => Poll::Ready(Err(err))
+                _ => {
+                    error!("Read error: {}", err);
+                    Poll::Ready(Err(err))
+                }
             }
         }
     }

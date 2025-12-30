@@ -3,9 +3,10 @@ use tokio_lite::net::TcpListener;
 
 fn main() -> std::io::Result<()> {
     println!("Starting Tokio-Lite runtime...");
-    
+    tokio_lite::init_tracing();
+ 
     let mut runtime = Runtime::new()?;
-    
+
     runtime.block_on(async {
         println!("[Main] Starting TCP echo server...");
 
